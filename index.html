@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Bug Avcısı · GemmGenc</title>
+<meta name="description" content="30 saniyede ekrandaki bug'ları yakala, bombalara dokunma! GemmGenc'in küçük tarayıcı oyunu.">
+<meta property="og:title" content="Bug Avcısı · GemmGenc">
+<meta property="og:description" content="30 saniyede kaç bug yakalayabilirsin? Bombalara dikkat!">
+<meta name="theme-color" content="#121016">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&family=Fira+Code:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root { --zemin: #121016; --yazi: #f3f1f7; --soluk: #a7a2b3; --mor: #a78bfa; --mor-koyu: #8b5cf6; --pembe: #ec4899; --yesil: #4ade80; }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    min-height: 100vh; background: var(--zemin); color: var(--yazi);
+    font: 16px/1.5 Inter, system-ui, sans-serif;
+    display: flex; flex-direction: column; align-items: center; padding: 12px 16px 24px;
+    user-select: none; -webkit-user-select: none; touch-action: manipulation;
+  }
+  header { width: 100%; max-width: 460px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  header a { color: var(--soluk); text-decoration: none; font-size: 14px; }
+  header a:hover { color: var(--mor); }
+  .panel { width: 100%; max-width: 460px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .kutu { background: rgb(255 255 255 / .04); border: 1px solid rgb(255 255 255 / .08); border-radius: 14px; padding: 8px 12px; text-align: center; }
+  .kutu small { display: block; color: var(--soluk); font-size: 12px; }
+  .kutu b { font: 700 22px Sora, sans-serif; }
+  #kombo { color: var(--pembe); }
+  .sure { width: 100%; max-width: 460px; height: 6px; border-radius: 3px; background: rgb(255 255 255 / .06); margin-bottom: 14px; overflow: hidden; }
+  .sure i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--mor-koyu), var(--pembe)); transform-origin: left; }
+
+  .alan { position: relative; width: 100%; max-width: 460px; }
+  .izgara {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    padding: 12px; border-radius: 22px;
+    background: rgb(255 255 255 / .03); border: 1px solid rgb(167 139 250 / .2);
+    box-shadow: 0 0 60px -24px rgb(139 92 246 / .7);
+  }
+  .delik {
+    aspect-ratio: 1; border-radius: 16px; position: relative; cursor: pointer;
+    background: #19161f; border: 1px solid rgb(255 255 255 / .05);
+    display: grid; place-items: center; font-size: clamp(30px, 10vw, 44px);
+    font-family: "Fira Code", monospace; color: rgb(167 139 250 / .14);
+    -webkit-tap-highlight-color: transparent; overflow: hidden;
+  }
+  .delik::before { content: "</>"; font-size: 14px; }
+  .delik .yaratik {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    animation: cik .18s cubic-bezier(.3, 1.6, .5, 1) both;
+  }
+  .delik.bug { background: #1f1830; border-color: rgb(167 139 250 / .4); }
+  .delik.altin { background: #2a2210; border-color: rgb(250 204 21 / .6); box-shadow: 0 0 24px -6px rgb(250 204 21 / .7); }
+  .delik.bomba { background: #2a1018; border-color: rgb(236 72 153 / .5); }
+  .delik.vuruldu .yaratik { animation: vur .25s ease-out forwards; }
+  @keyframes cik { from { transform: translateY(70%) scale(.6); opacity: 0; } }
+  @keyframes vur { to { transform: scale(1.6) rotate(20deg); opacity: 0; } }
+  .puan {
+    position: absolute; pointer-events: none; font: 700 20px Sora, sans-serif;
+    animation: yuksel .7s ease-out forwards; z-index: 5;
+  }
+  @keyframes yuksel { to { transform: translateY(-50px); opacity: 0; } }
+
+  .ekran {
+    position: absolute; inset: 0; border-radius: 22px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; padding: 20px;
+    background: rgb(18 16 22 / .88); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); z-index: 10;
+  }
+  .ekran[hidden] { display: none; }
+  h1 { font: 700 38px/1.05 Sora, sans-serif; background: linear-gradient(100deg, #fff, #c4b5fd 60%, #f0abfc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .ekran p { color: var(--soluk); max-width: 30ch; font-size: 15px; }
+  .kurallar { display: flex; gap: 14px; font-size: 14px; color: var(--soluk); flex-wrap: wrap; justify-content: center; }
+  .buyuk { font: 700 56px/1 Sora, sans-serif; }
+  button { font: 600 16px Inter, sans-serif; color: #fff; cursor: pointer; background: var(--mor-koyu); border: 0; border-radius: 14px; padding: 14px 28px; box-shadow: 0 10px 30px -10px rgb(139 92 246 / .9); }
+  button:active { transform: scale(.97); }
+  .rekor { color: var(--pembe); font-weight: 600; }
+  body.sars .izgara { animation: sars .3s; }
+  @keyframes sars { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+</style>
+</head>
+<body>
+<header>
+  <a href="https://mikail0633.github.io">← GemmGenc</a>
+  <span style="color:var(--soluk);font-size:14px">Rekor <b id="rekor" style="color:var(--mor)">0</b></span>
+</header>
+
+<div class="panel">
+  <div class="kutu"><small>Skor</small><b id="skor">0</b></div>
+  <div class="kutu"><small>Kombo</small><b id="kombo">x1</b></div>
+  <div class="kutu"><small>Süre</small><b id="sure">30</b></div>
+</div>
+<div class="sure"><i id="sureCubuk"></i></div>
+
+<div class="alan">
+  <div class="izgara" id="izgara"></div>
+
+  <div class="ekran" id="giris">
+    <h1>Bug Avcısı</h1>
+    <p>Kodun her yerinden bug fışkırıyor! 30 saniyede yakalayabildiğin kadar yakala.</p>
+    <div class="kurallar"><span>🐛 +1</span><span>🪲 altın +5</span><span>💣 −3</span></div>
+    <p>Art arda vurdukça kombo artar. Boş kareye ya da bombaya dokunursan kombo sıfırlanır.</p>
+    <button id="basla">Avlanmaya başla</button>
+  </div>
+
+  <div class="ekran" id="bitti" hidden>
+    <p>Yakalanan puan</p>
+    <div class="buyuk" id="sonSkor">0</div>
+    <p id="unvan"></p>
+    <p class="rekor" id="yeniRekor" hidden>🏆 Yeni rekor!</p>
+    <button id="tekrar">Tekrar oyna</button>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const izgara = $('izgara');
+const SURE = 30;
+const delikler = [];
+for (let i = 0; i < 16; i++) {
+  const d = document.createElement('div');
+  d.className = 'delik';
+  d.addEventListener('pointerdown', (e) => vur(i, e));
+  izgara.appendChild(d);
+  delikler.push({ el: d, tur: null, zaman: null });
+}
+
+let ses;
+function ton(f, sure = .1, tur = 'sine', hacim = .06, kayma = 0) {
+  try {
+    ses = ses || new (window.AudioContext || window.webkitAudioContext)();
+    const t = ses.currentTime, o = ses.createOscillator(), g = ses.createGain();
+    o.type = tur; o.frequency.setValueAtTime(f, t);
+    if (kayma) o.frequency.exponentialRampToValueAtTime(f * kayma, t + sure);
+    g.gain.setValueAtTime(hacim, t); g.gain.exponentialRampToValueAtTime(.0001, t + sure);
+    o.connect(g).connect(ses.destination); o.start(t); o.stop(t + sure + .02);
+  } catch {}
+}
+
+let skor = 0, kombo = 1, kalan = SURE, oynuyor = false, baslangic = 0, sonDogum = 0;
+let rekor = 0;
+try { rekor = +localStorage.getItem('bug-avcisi-rekor') || 0; } catch {}
+$('rekor').textContent = rekor;
+
+function guncelPanel() {
+  $('skor').textContent = skor;
+  $('kombo').textContent = 'x' + kombo;
+  $('sure').textContent = Math.ceil(kalan);
+  $('sureCubuk').style.transform = `scaleX(${kalan / SURE})`;
+}
+
+function temizle(i) {
+  const d = delikler[i];
+  d.tur = null;
+  d.el.className = 'delik';
+  d.el.innerHTML = '';
+}
+
+function dogur(simdi) {
+  const bos = delikler.map((d, i) => (d.tur ? -1 : i)).filter((i) => i >= 0);
+  if (!bos.length) return;
+  const i = bos[Math.floor(Math.random() * bos.length)];
+  const r = Math.random();
+  const tur = r < .12 ? 'bomba' : r < .2 ? 'altin' : 'bug';
+  const d = delikler[i];
+  const ilerleme = 1 - kalan / SURE;
+  d.tur = tur;
+  d.omur = simdi + (tur === 'altin' ? 650 : 1100 - ilerleme * 450);
+  d.el.className = 'delik ' + tur;
+  d.el.innerHTML = `<span class="yaratik">${tur === 'bomba' ? '💣' : tur === 'altin' ? '🪲' : '🐛'}</span>`;
+}
+
+function puanGoster(e, metin, renk) {
+  const p = document.createElement('div');
+  p.className = 'puan'; p.textContent = metin; p.style.color = renk;
+  const r = izgara.parentElement.getBoundingClientRect();
+  p.style.left = (e.clientX - r.left - 14) + 'px';
+  p.style.top = (e.clientY - r.top - 20) + 'px';
+  izgara.parentElement.appendChild(p);
+  setTimeout(() => p.remove(), 700);
+}
+
+function vur(i, e) {
+  if (!oynuyor) return;
+  const d = delikler[i];
+  if (!d.tur) { kombo = 1; ton(150, .08, 'square', .03); guncelPanel(); return; }
+  if (d.tur === 'bomba') {
+    skor = Math.max(0, skor - 3); kombo = 1;
+    puanGoster(e, '−3', '#ec4899');
+    ton(110, .35, 'sawtooth', .06, .4);
+    document.body.classList.remove('sars'); void document.body.offsetWidth; document.body.classList.add('sars');
+    if (navigator.vibrate) navigator.vibrate(120);
+  } else {
+    const temel = d.tur === 'altin' ? 5 : 1;
+    const kazanc = temel * kombo;
+    skor += kazanc;
+    puanGoster(e, '+' + kazanc, d.tur === 'altin' ? '#facc15' : '#a78bfa');
+    ton(d.tur === 'altin' ? 1047 : 600 + kombo * 60, .09, 'triangle', .07);
+    kombo = Math.min(kombo + 1, 8);
+  }
+  d.el.classList.add('vuruldu');
+  d.tur = 'vuruldu';
+  setTimeout(() => temizle(i), 220);
+  guncelPanel();
+}
+
+function dongu(simdi) {
+  if (!oynuyor) return;
+  kalan = Math.max(0, SURE - (simdi - baslangic) / 1000);
+  const ilerleme = 1 - kalan / SURE;
+  const aralik = 650 - ilerleme * 380;
+  if (simdi - sonDogum > aralik) {
+    dogur(simdi);
+    if (ilerleme > .5 && Math.random() < .35) dogur(simdi);
+    sonDogum = simdi;
+  }
+  delikler.forEach((d, i) => {
+    if ((d.tur === 'bug' || d.tur === 'altin' || d.tur === 'bomba') && simdi > d.omur) {
+      if (d.tur !== 'bomba') kombo = 1;          // kaçan bug komboyu bozar
+      temizle(i);
+    }
+  });
+  guncelPanel();
+  if (kalan <= 0) return bitir();
+  requestAnimationFrame(dongu);
+}
+
+function unvan(s) {
+  if (s >= 150) return '🧙 Efsanevi Debugger';
+  if (s >= 90) return '🚀 Kıdemli Avcı';
+  if (s >= 45) return '💻 Junior Avcı';
+  return '🐣 Stajyer';
+}
+
+function basla() {
+  delikler.forEach((_, i) => temizle(i));
+  skor = 0; kombo = 1; kalan = SURE; oynuyor = true;
+  $('giris').hidden = true; $('bitti').hidden = true;
+  baslangic = performance.now(); sonDogum = 0;
+  ton(523, .1); setTimeout(() => ton(784, .14), 90);
+  requestAnimationFrame(dongu);
+}
+
+function bitir() {
+  oynuyor = false;
+  delikler.forEach((_, i) => temizle(i));
+  [784, 659, 523].forEach((f, k) => setTimeout(() => ton(f, .16, 'triangle', .06), k * 110));
+  $('sonSkor').textContent = skor;
+  $('unvan').textContent = unvan(skor);
+  $('yeniRekor').hidden = skor <= rekor;
+  if (skor > rekor) { rekor = skor; $('rekor').textContent = rekor; try { localStorage.setItem('bug-avcisi-rekor', rekor); } catch {} }
+  $('bitti').hidden = false;
+}
+
+$('basla').onclick = basla;
+$('tekrar').onclick = basla;
+guncelPanel();
+</script>
+</body>
+</html>
